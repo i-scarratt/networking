@@ -1,0 +1,72 @@
+{
+  "freeTextAnnotations": [],
+  "freeShapeAnnotations": [],
+  "trafficRateAnnotations": [],
+  "groupStyleAnnotations": [],
+  "networkNodeAnnotations": [],
+  "nodeAnnotations": [
+    {
+      "id": "wan1",
+      "interfacePattern": "e1-{n}",
+      "position": {
+        "x": 340,
+        "y": 460
+      }
+    },
+    {
+      "id": "wan2",
+      "interfacePattern": "e1-{n}",
+      "position": {
+        "x": 340,
+        "y": 260
+      }
+    },
+    {
+      "id": "wan3",
+      "interfacePattern": "e1-{n}",
+      "position": {
+        "x": 460,
+        "y": 460
+      }
+    },
+    {
+      "id": "wan4",
+      "interfacePattern": "e1-{n}",
+      "position": {
+        "x": 460,
+        "y": 260
+      }
+    },
+    {
+      "id": "client1",
+      "position": {
+        "x": 200,
+        "y": 460
+      }
+    },
+    {
+      "id": "client2",
+      "position": {
+        "x": 200,
+        "y": 320
+      }
+    },
+    {
+      "id": "client3",
+      "position": {
+        "x": 620,
+        "y": 460
+      }
+    },
+    {
+      "id": "client4",
+      "position": {
+        "x": 620,
+        "y": 320
+      }
+    }
+  ],
+  "edgeAnnotations": [],
+  "aliasEndpointAnnotations": [],
+  "viewerSettings": {}
+}
