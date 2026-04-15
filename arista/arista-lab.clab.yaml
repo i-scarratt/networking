@@ -25,10 +25,10 @@ topology:
   links:
     # Inter-switch link
     - endpoints: ["switch1:eth1", "switch2:eth1"]
-    - endpoints: ["switch2:eth1", "switch3:eth1"]
+    - endpoints: ["switch2:eth2", "switch3:eth1"]
     - endpoints: ["switch3:eth2", "switch4:eth1"]
     - endpoints: ["switch4:eth2", "switch1:eth2"]
 
     # Switch to host link
     - endpoints: ["switch1:eth3", "host1:eth1"]
-    - endpoints: ["switch2:eth2", "host1:eth2"]
+    - endpoints: ["switch2:eth3", "host1:eth2"]
