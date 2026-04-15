@@ -1,0 +1,26 @@
+name: arista-test-lab
+
+topology:
+  kinds:
+    # Setting defaults for all cEOS nodes to keep the file clean
+    ceos:
+      image: ceos:latest  # Matches the tag you used during import
+    linux:
+      image: ghcr.io/hellt/network-multitool
+
+  nodes:
+    switch1:
+      kind: ceos
+    switch2:
+      kind: ceos
+
+    # Adding a host to verify the data plane
+    host1:
+      kind: linux
+
+  links:
+    # Inter-switch link
+    - endpoints: ["switch1:eth1", "switch2:eth1"]
+
+    # Switch to host link
+    - endpoints: ["switch1:eth2", "host1:eth1"]
