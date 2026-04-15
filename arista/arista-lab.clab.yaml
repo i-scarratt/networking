@@ -11,12 +11,16 @@ topology:
   nodes:
     switch1:
       kind: arista_ceos
+      startup-config: switch1-config.cfg
     switch2:
       kind: arista_ceos
+      startup-config: switch2-config.cfg
     switch3:
       kind: arista_ceos
+      startup-config: switch3-config.cfg
     switch4:
       kind: arista_ceos
+      startup-config: switch4-config.cfg
 
     # Adding a host to verify the data plane
     host1:
@@ -27,7 +31,7 @@ topology:
     - endpoints: ["switch1:eth1", "switch2:eth1"]
     - endpoints: ["switch2:eth2", "switch3:eth1"]
     - endpoints: ["switch3:eth2", "switch4:eth1"]
-    - endpoints: ["switch4:eth2", "switch1:eth2"]
+    - endpoints: ["switch4:eth2", "switch1:eth4"]
 
     # Switch to host link
     - endpoints: ["switch1:eth3", "host1:eth1"]
