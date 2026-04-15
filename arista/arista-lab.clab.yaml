@@ -4,7 +4,7 @@ topology:
   kinds:
     # Setting defaults for all cEOS nodes to keep the file clean
     arista_ceos:
-      image: ceos:latest  # Matches the tag you used during import
+      image: ceos:latest  # Matches the tag used during import
     linux:
       image: ghcr.io/hellt/network-multitool
 
@@ -12,6 +12,10 @@ topology:
     switch1:
       kind: arista_ceos
     switch2:
+      kind: arista_ceos
+    switch3:
+      kind: arista_ceos
+    switch4:
       kind: arista_ceos
 
     # Adding a host to verify the data plane
@@ -21,6 +25,10 @@ topology:
   links:
     # Inter-switch link
     - endpoints: ["switch1:eth1", "switch2:eth1"]
+    - endpoints: ["switch2:eth1", "switch3:eth1"]
+    - endpoints: ["switch3:eth1", "switch4:eth1"]
+    - endpoints: ["switch4:eth1", "switch1:eth1"]
 
     # Switch to host link
     - endpoints: ["switch1:eth2", "host1:eth1"]
+    - endpoints: ["switch2:eth2", "host1:eth2"]
