@@ -11,16 +11,16 @@ topology:
   nodes:
     switch1:
       kind: arista_ceos
-      startup-config: https://github.com/i-scarratt/networking/blob/main/arista/switch1-config.cfg
+      startup-config: /home/clab/clab-arista-test-lab/networking/arista/switch1-config.cfg
     switch2:
       kind: arista_ceos
-      startup-config: https://github.com/i-scarratt/networking/blob/main/arista/switch2-config.cfg
+      startup-config: /home/clab/clab-arista-test-lab/networking/arista/switch2-config.cfg
     switch3:
       kind: arista_ceos
-      startup-config: https://github.com/i-scarratt/networking/blob/main/arista/switch3-config.cfg
+      startup-config: /home/clab/clab-arista-test-lab/networking/arista/switch3-config.cfg
     switch4:
       kind: arista_ceos
-      startup-config: https://github.com/i-scarratt/networking/blob/main/arista/switch4-config.cfg
+      startup-config: /home/clab/clab-arista-test-lab/networking/arista/switch4-config.cfg
 
     # Adding a host to verify the data plane
     host1:
