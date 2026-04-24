@@ -1,0 +1,64 @@
+fortigate_config:
+  global:
+    hostname: FG-MultiVDOM
+    vdom_mode: multi-vdom
+
+  vdoms:
+    - name: root
+      interfaces:
+        - name: port1
+          ip: 192.168.1.1/24
+          role: lan
+        - name: port2
+          ip: 203.0.113.1/30
+          role: wan
+
+      routing:
+        static_routes:
+          - dst: 0.0.0.0/0
+            gateway: 203.0.113.2
+            device: port2
+
+      firewall_policies:
+        - name: allow-internet
+          srcintf: port1
+          dstintf: port2
+          srcaddr: all
+          dstaddr: all
+          service: ALL
+          action: accept
+          nat: enable
+
+    - name: customer1
+      interfaces:
+        - name: port3
+          ip: 10.10.10.1/24
+          role: lan
+        - name: port4
+          ip: 198.51.100.1/30
+          role: wan
+
+      routing:
+        static_routes:
+          - dst: 0.0.0.0/0
+            gateway: 198.51.100.2
+            device: port4
+
+      firewall_policies:
+        - name: cust1-internet
+          srcintf: port3
+          dstintf: port4
+          srcaddr: all
+          dstaddr: all
+          service: ALL
+          action: accept
+          nat: enable
+
+  inter_vdom_links:
+    - name: vlink1
+      vdoms:
+        - root
+        - customer1
+      ip:
+        root: 172.16.0.1/30
+        customer1: 172.16.0.2/30
