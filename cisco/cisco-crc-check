@@ -1,1 +1,190 @@
+"""
+cisco_crc_poll.py
 
+Polls a list of Cisco IOS devices over SSH, pulls interface counters via
+'show interfaces', and flags any interface with a CRC error count above
+a defined threshold (default: 50).
+
+Requires: netmiko (pip install netmiko)
+
+Usage:
+    Update the DEVICES list and CRC_THRESHOLD below, then run:
+        python cisco_crc_poll.py
+
+Output:
+    Prints a summary to screen and writes results to crc_report.csv
+"""
+
+import csv
+import re
+from datetime import datetime
+
+from netmiko import ConnectHandler
+from netmiko.exceptions import NetmikoAuthenticationException, NetmikoTimeoutException
+
+# ---------------------------------------------------------------------------
+# Configuration
+# ---------------------------------------------------------------------------
+
+CRC_THRESHOLD = 50
+
+DEVICES = [
+    {
+        "device_type": "cisco_ios",
+        "host": "192.168.1.10",
+        "username": "your_username",
+        "password": "your_password",
+        # "secret": "your_enable_secret",  # uncomment if enable mode needed
+    },
+    {
+        "device_type": "cisco_ios",
+        "host": "192.168.1.11",
+        "username": "your_username",
+        "password": "your_password",
+    },
+    # Add more devices here
+]
+
+OUTPUT_CSV = "crc_report.csv"
+
+# ---------------------------------------------------------------------------
+# Parsing
+# ---------------------------------------------------------------------------
+
+# Matches interface header lines, e.g:
+# GigabitEthernet0/1 is up, line protocol is up
+INTERFACE_HEADER_RE = re.compile(r"^(\S+) is (up|down|administratively down)")
+
+# Matches the CRC error line, e.g:
+# 0 input errors, 0 CRC, 0 frame, 0 overrun, 0 ignored
+CRC_LINE_RE = re.compile(r"(\d+)\s+CRC")
+
+
+def parse_interface_crc(raw_output):
+    """
+    Parse the output of 'show interfaces' and return a list of dicts:
+    [{"interface": "Gi0/1", "status": "up", "crc": 12}, ...]
+    """
+    results = []
+    current_interface = None
+    current_status = None
+
+    for line in raw_output.splitlines():
+        header_match = INTERFACE_HEADER_RE.match(line)
+        if header_match:
+            current_interface = header_match.group(1)
+            current_status = header_match.group(2)
+            continue
+
+        crc_match = CRC_LINE_RE.search(line)
+        if crc_match and current_interface:
+            crc_count = int(crc_match.group(1))
+            results.append({
+                "interface": current_interface,
+                "status": current_status,
+                "crc": crc_count,
+            })
+            # Reset so we don't accidentally reuse this interface name
+            # if the counters block appears more than once
+            current_interface = None
+            current_status = None
+
+    return results
+
+
+# ---------------------------------------------------------------------------
+# Polling
+# ---------------------------------------------------------------------------
+
+def poll_device(device):
+    """
+    Connect to a single device, run 'show interfaces', and return parsed
+    CRC results. Returns None if connection fails.
+    """
+    host = device["host"]
+    print(f"[{host}] Connecting...")
+
+    try:
+        conn = ConnectHandler(**device)
+    except NetmikoAuthenticationException:
+        print(f"[{host}] ERROR: Authentication failed.")
+        return None
+    except NetmikoTimeoutException:
+        print(f"[{host}] ERROR: Connection timed out.")
+        return None
+    except Exception as exc:
+        print(f"[{host}] ERROR: {exc}")
+        return None
+
+    try:
+        if "secret" in device:
+            conn.enable()
+
+        raw_output = conn.send_command("show interfaces")
+        interfaces = parse_interface_crc(raw_output)
+        return interfaces
+    finally:
+        conn.disconnect()
+
+
+def main():
+    all_results = []
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    for device in DEVICES:
+        host = device["host"]
+        interfaces = poll_device(device)
+
+        if interfaces is None:
+            continue
+
+        for iface in interfaces:
+            flagged = iface["crc"] > CRC_THRESHOLD
+            all_results.append({
+                "timestamp": timestamp,
+                "device": host,
+                "interface": iface["interface"],
+                "status": iface["status"],
+                "crc_errors": iface["crc"],
+                "above_threshold": flagged,
+            })
+
+            if flagged:
+                print(f"[{host}] FLAGGED: {iface['interface']} "
+                      f"CRC={iface['crc']} (threshold={CRC_THRESHOLD})")
+
+    write_csv(all_results)
+    print_summary(all_results)
+
+
+# ---------------------------------------------------------------------------
+# Output
+# ---------------------------------------------------------------------------
+
+def write_csv(results):
+    if not results:
+        print("No results to write.")
+        return
+
+    fieldnames = ["timestamp", "device", "interface", "status",
+                  "crc_errors", "above_threshold"]
+
+    with open(OUTPUT_CSV, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(results)
+
+    print(f"\nResults written to {OUTPUT_CSV}")
+
+
+def print_summary(results):
+    total = len(results)
+    flagged = sum(1 for r in results if r["above_threshold"])
+
+    print("\n--- Summary ---")
+    print(f"Interfaces checked: {total}")
+    print(f"Interfaces above CRC threshold ({CRC_THRESHOLD}): {flagged}")
+
+
+if __name__ == "__main__":
+    main()
